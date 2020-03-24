@@ -67,7 +67,11 @@ You can checkout the [demos page](http://sagold.github.io/js-viewpane/) to get a
         // perspective origin. Values [0, 1]. Default (0.5, 0.5)    
         origin: {x: 0.5, y: 0.5},
         // enable rubberband on z-axis. Default true
-        rubberZ: true
+        rubberZ: true,
+        // value to zoom beyond original resolution. Values [0, 1], where 1 
+        // is almost infinite zoom and 0 prevents zooming over actual resolution.
+        // Defaults to 0.25
+        zoomFactor: 0.25
     }
 ```
 

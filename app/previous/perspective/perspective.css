@@ -1,0 +1,66 @@
+#viewpane {
+    position: absolute;
+    -webkit-transform-style: preserve-3d;
+    transform-style: preserve-3d;
+
+    width: 3000px;
+    height: 1020px;
+    background: url('assets/subway.jpg') no-repeat;
+}
+
+.box,
+.plane {
+    display: block;
+    position: absolute;
+    transform-style: preserve-3d;
+}
+
+#floor {
+    width: 3000px;
+    height: 300px;
+    background: transparent url("assets/sw-floor.jpg") no-repeat;
+    background-size: 100% 100%;
+    transform-origin: top center;
+    transform: translate3d(0px, 831px, 0px) rotateX(90deg);
+}
+
+#jane {
+    width: 154px;
+    height: 224px;
+    background: transparent url("assets/sw-jane.png") no-repeat;
+    transform: translate3d(1409px, 436px, 50px) scale(0.58);
+}
+
+#label {
+
+    font-size: 128px;
+    font-family: Arial;
+    font-weight: bold;
+    color: #eee;
+    transform: translate3d(2000px, 560px, 1800px);
+}
+
+.box figure {
+    display: block;
+    position: absolute;
+    /*border: 1px solid black;*/
+    background-size: 100% 100% !important;
+}
+
+.box.column .front {background: url("assets/sw-column-front.jpg") no-repeat;}
+.box.column .left,
+.box.column .right {background: url("assets/sw-column-side.jpg") no-repeat;}
+
+.box.pedestral .top {background: url("assets/sw-pedestral-top.jpg") no-repeat;}
+.box.pedestral .left,
+.box.pedestral .front,
+.box.pedestral .right {background: url("assets/sw-pedestral-side.jpg") no-repeat;}
+
+.box.socket .top {background: url("assets/sw-socket-top.jpg") no-repeat;}
+.box.socket .front {background: url("assets/sw-socket-front.jpg") no-repeat;}
+
+.box.ceiling .front {background: #000 url("assets/sw-ceiling-front.jpg") no-repeat;}
+.box.ceiling .bottom {background: #000 url("assets/sw-ceiling-bottom.jpg") repeat-xy;}
+
+.box.bg .top {background: #000 url("assets/sw-bg-top.jpg") no-repeat;}
+.box.bg .front {background: #000 url("assets/sw-bg-front.jpg") no-repeat;}

@@ -1,44 +1,53 @@
-// var webpack = require("webpack");
+const path = require("path"); // eslint-disable-line
+const TerserPlugin = require("terser-webpack-plugin"); // eslint-disable-line
+const PRODUCTION = process.env.NODE_ENV === "production";
 
-module.exports = {
-    // resolve paths from this directory
+
+const config = {
+    entry: [
+        "./lib/index.ts"
+    ],
+    mode: PRODUCTION ? "production" : "development",
     context: __dirname,
-    // add sourcemap
-    devtool: "eval",
-	// main entry file
-	entry: ["./lib/index.js"],
-    // generated output
-	output: {
-	    path: "dist",
-	    publicPath: "/dist",
-	    filename: "viewpane.js",
-	    library: "Viewpane"
-	},
-    // configure modules
+    target: "web",
+    devtool: PRODUCTION ? false : "source-map",
+    stats: { children: false },
+    output: {
+        path: path.resolve(__dirname, PRODUCTION ? "dist" : "dev"),
+        filename: 'viewpane.js',
+        libraryTarget: 'umd',
+        library: 'viewpane',
+        umdNamedDefine: true,
+        globalObject: `(typeof self !== 'undefined' ? self : this)`
+    },
+
+    resolve: {
+        extensions: [".tsx", ".ts", ".js"],
+        alias: {}
+    },
+
     module: {
-        // configure loaders
-        loaders: [
+        rules: [
             {
-                test: /(app|lib|test).*\.html/,
-                loader: "html"
+                test: /\.tsx?$/,
+                use: {
+                    loader: "ts-loader",
+                    options: {
+                        configFile: path.resolve(__dirname, "tsconfig.json"),
+                        compilerOptions: {
+                            sourceMap: !PRODUCTION,
+                            declaration: PRODUCTION
+                        }
+                    }
+                }
             }
         ]
     },
-    plugins: [
-        // new webpack.optimize.UglifyJsPlugin()
-    ],
-    // configure the console output
-    stats: {
-        colors: false,
-        modules: true,
-        reasons: true
-    },
-    // Don't show progress
-    progress: false,
-    // don't report error to grunt if webpack find errors
-    failOnError: true,
-    // use webpacks watcher
-    watch: false,
-    // don't finish the grunt task
-    keepalive: false,
+
+    optimization: {
+        minimizer: [new TerserPlugin()]
+    }
 };
+
+
+module.exports = config;

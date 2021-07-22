@@ -1,244 +1,217 @@
-/* eslint no-use-before-define: "off", @typescript-eslint/no-use-before-define: "off" */
+"use strict";
+
+import vector from "../common/vector";
 import Loop from "../common/loop";
-import HandlerConfig from "./HandlerConfig";
-import { vec3 as v } from "gl-matrix";
 
 // returns center point between first and second touch point
-function getCenterPosition(out: v, boundingBox, firstTouch, secondTouch): v {
-    const { pageX, pageY }  = firstTouch;
-    return v.set(out,
-        0.5 * (secondTouch.pageX - pageX) + pageX - boundingBox.left,
-        0.5 * (secondTouch.pageY - pageY) + pageY - boundingBox.top,
-        0
-    );
+function getCenterPosition(vector, boundingBox, firstTouch, secondTouch) {
+    vector.x =
+        0.5 * (secondTouch.pageX - firstTouch.pageX) +
+        firstTouch.pageX -
+        boundingBox.left;
+    vector.y =
+        0.5 * (secondTouch.pageY - firstTouch.pageY) +
+        firstTouch.pageY -
+        boundingBox.top;
+    vector.z = 0;
+    return vector;
 }
 
-const toDeg = (rad: number): number => rad * 180/Math.PI;
-
 // returns distance between to touch-points
-function getLengthOfLine(firstTouch, secondTouch): number {
-    const x = secondTouch.pageX - firstTouch.pageX;
-    const y = secondTouch.pageY - firstTouch.pageY;
+function getLengthOfLine(firstTouch, secondTouch) {
+    var x = secondTouch.pageX - firstTouch.pageX;
+    var y = secondTouch.pageY - firstTouch.pageY;
     return Math.sqrt(x * x + y * y);
 }
 
-function setRotationAxis(out: v, a: Touch, b: Touch): v {
-    const { pageX: ax, pageY: ay } = a;
-    const { pageX: bx, pageY: by } = b;
-    return v.set(out, ax - bx, ay - by, 1);
-}
-
-const anglePlane = v.fromValues(0, 0, -1);
-const temp = v.create();
-function getAngle(a: v, b: v): number {
-    const sign = v.dot(anglePlane, v.cross(temp, a, b))
-    return toDeg(sign < 0 ? v.angle(a, b) : -v.angle(a, b));
-}
-
-
-interface Bound {
-    top: number;
-    left: number;
-    width: number;
-    height: number;
-}
-
-
-class InputProcessor {
-    loopState: boolean;
-    onInput: (origin: v, movement: v, rotation: v) => void;
-    boundingBox: Bound;
-
-    currentEvent: TouchEvent;
-    // calulcation values
-    touchDistance: number;
-    previousPosition = v.create();
-    currentPosition = v.create();
-    rotation = v.create();
-    inputVector = v.create();
-    currentRotationAxis = v.create();
-    previousRotationAxis = v.create();
-
-    constructor(boundingBox: Bound, onInput) {
-        this.boundingBox = boundingBox;
-        this.onInput = onInput;
-    }
-
-    reset(touches: TouchList): void {
-        this.currentEvent = null;
-        v.zero(this.rotation);
-
-        if (touches.length > 2) {
-            this.updateTripleTouch(touches[0], touches[1]);
-        } else if (touches.length > 1) {
-            this.updateDualTouch(touches[0], touches[1]);
-            v.copy(this.previousRotationAxis, this.currentRotationAxis);
-        } else {
-            this.updateSingleTouch(touches[0]);
-        }
-
-        v.copy(this.previousPosition, this.currentPosition);
-    }
-
-    updateSingleTouch(touch: Touch): void {
-        const { pageX, pageY } = touch;
-        const { boundingBox, currentPosition, previousPosition, inputVector } = this;
-        // movement
-        v.set(currentPosition, pageX - boundingBox.left, pageY - boundingBox.top, 0);
-        v.subtract(inputVector, currentPosition, previousPosition);
-        // no scale
-        inputVector[2] = 0;
-    }
-
-    updateDualTouch(firstTouch: Touch, secondTouch: Touch): void {
-        const {
-            boundingBox, currentPosition, previousPosition, inputVector,
-            rotation, currentRotationAxis, previousRotationAxis
-        } = this;
-
-        // movement
-        getCenterPosition(currentPosition, boundingBox, firstTouch, secondTouch);
-        v.subtract(inputVector, currentPosition, previousPosition);
-        // scale
-        const touchDistance = getLengthOfLine(firstTouch, secondTouch);
-        inputVector[2] = touchDistance / this.touchDistance; // z = scale factor
-        this.touchDistance = touchDistance;
-        // rotation
-        setRotationAxis(currentRotationAxis, firstTouch, secondTouch);
-        rotation[2] = getAngle(currentRotationAxis, previousRotationAxis);
-        v.copy(previousRotationAxis, currentRotationAxis);
-    }
-
-    updateTripleTouch(firstTouch: Touch, secondTouch: Touch): void {
-        const { boundingBox, rotation, currentPosition, previousPosition, inputVector } = this;
-        // movement
-        getCenterPosition(currentPosition, boundingBox, firstTouch, secondTouch);
-        v.subtract(inputVector, currentPosition, previousPosition);
-        // rotation: x axis only (tilt in view direction)
-        rotation[0] = inputVector[1] / (screen.height/45);
-    }
-
-    start(): void {
-        this.loopState = Loop.CONTINUE;
-        Loop.add(this);
-    }
-
-    stop(): void {
-        this.loopState = Loop.EXIT;
-    }
-
-    calculate(): boolean {
-        if (this.currentEvent == null) {
-            return;
-        }
-
-        const { touches } = this.currentEvent;
-        this.currentEvent = null;
-
-        if (touches.length === 1) {
-            this.updateSingleTouch(touches[0]);
-            this.onInput(this.currentPosition, this.inputVector, undefined);
-
-        } else if (touches.length === 2) {
-            this.updateDualTouch(touches[0], touches[1]);
-            console.log("send dualtouch");
-            this.onInput(this.currentPosition, this.inputVector, this.rotation);
-
-        } else if (touches.length > 2) {
-            this.updateTripleTouch(touches[0], touches[1]);
-            this.onInput(this.currentPosition, undefined, this.rotation);
-        }
-
-        return this.loopState;
-    }
-
-    render() {} // eslint-disable-line
-}
-
-
-export default function touch($element, boundingBox, onStart, onInput, onEnd): HandlerConfig {
-    const config = {
-        // if viewpane is enabled and accepts inputs - changed outside
+function touch($element, boundingBox, onStart, onInput, onEnd, onChange) {
+    var config = {
         activated: true,
-        dispose(): void {
+        dispose: function () {
             this.activated = false;
-            $element.removeEventListener("touchstart", addTouchPoint);
-            $element.removeEventListener("touchmove", moveTouch);
-            $element.removeEventListener("touchend", removeTouchPoint);
-            document.body.removeEventListener("touchend", removeTouchPoint);
-        }
+            $element.removeEventListener("touchmove", touchmove);
+            $element.removeEventListener("touchstart", touchstart);
+            $element.removeEventListener("touchend", endTouch);
+            document.body.removeEventListener("touchend", endTouch);
+        },
     };
 
-    $element.addEventListener("touchstart", addTouchPoint);
-    $element.addEventListener("touchmove", moveTouch);
-    $element.addEventListener("touchend", removeTouchPoint);
-    document.body.addEventListener("touchend", removeTouchPoint);
+    var currentTouches = 0;
+    var currentPosition = vector.create();
+    var previousPosition = vector.create();
+    var inputVector = vector.create();
 
-    let touchCount = 0;
-    let startOnTouchMove = false;
-    const processor = new InputProcessor(boundingBox, onInput);
+    var currentLength = 0;
+    var previousLength = 0;
 
-    /** called for each added touch */
-    function addTouchPoint(event: TouchEvent): void {
+    $element.addEventListener("touchmove", touchmove);
+    $element.addEventListener("touchstart", touchstart);
+    $element.addEventListener("touchend", endTouch);
+    document.body.addEventListener("touchend", endTouch);
+
+    var Processor = {
+        currentEvent: null,
+
+        start: function () {
+            this.loopState = Loop.CONTINUE;
+            Loop.add(this);
+        },
+
+        stop: function () {
+            this.loopState = Loop.EXIT;
+        },
+
+        calculate: function () {
+            var event = this.currentEvent;
+            if (event == null) {
+                return;
+            }
+
+            previousLength = currentLength;
+            previousPosition.set(currentPosition);
+
+            if (event.touches.length > 1) {
+                currentLength = getLengthOfLine(
+                    event.touches[0],
+                    event.touches[1]
+                );
+                currentPosition = getCenterPosition(
+                    currentPosition,
+                    boundingBox,
+                    event.touches[0],
+                    event.touches[1]
+                );
+
+                inputVector.setDelta(currentPosition, previousPosition);
+                // z = scale factor
+                inputVector.z =
+                    previousLength === 0 ? 1 : currentLength / previousLength;
+            } else {
+                currentPosition.setValues(
+                    event.touches[0].pageX - boundingBox.left,
+                    event.touches[0].pageY - boundingBox.top,
+                    0
+                );
+                inputVector.setDelta(currentPosition, previousPosition);
+                inputVector.z = 1;
+            }
+
+            this.currentEvent = null;
+            onInput(inputVector, currentPosition);
+            return this.loopState;
+        },
+
+        render: Function.prototype,
+    };
+
+    function startSingleTouch(touchItem) {
+        currentLength = 0;
+        previousLength = 0;
+        currentPosition.setValues(
+            touchItem.pageX - boundingBox.left,
+            touchItem.pageY - boundingBox.top,
+            0
+        );
+        previousPosition.set(currentPosition);
+    }
+
+    function startDoubleTouch(firstTouch, secondTouch) {
+        currentLength = getLengthOfLine(firstTouch, secondTouch);
+        currentPosition = getCenterPosition(
+            currentPosition,
+            boundingBox,
+            firstTouch,
+            secondTouch
+        );
+        previousPosition.set(currentPosition);
+    }
+
+    function startTouch(event) {
+        var isActive = currentTouches !== 0;
+        config.activated && event.preventDefault();
+        considerStart = false;
+        currentTouches = event.touches.length;
+
+        Processor.start();
+
+        if (event.touches.length === 1) {
+            startSingleTouch(event.touches[0]);
+        } else {
+            startDoubleTouch(event.touches[0], event.touches[1]);
+            if (isActive) {
+                onChange(currentPosition);
+                return;
+            }
+        }
+
+        onStart(currentPosition);
+    }
+
+    function endTouch(event) {
+        // abort if inactive
+        if (currentTouches === 0) {
+            return;
+        }
+
+        // end event might be triggered twice (document)
+        event.stopPropagation();
+
+        // if touch remains, change mode
+        if (event.touches.length === 1) {
+            // reset
+            startSingleTouch(event.touches[0]);
+            onChange(currentPosition);
+            return;
+        }
+
+        // else end input action
+        considerStart = false;
+        currentTouches = 0;
+        Processor.stop();
+        onEnd(event);
+    }
+
+    var considerStart = false;
+    function considerInputStart(event) {
+        considerStart = true;
+    }
+
+    function touchstart(event) {
+        if (event.touches.length > 2) {
+            return;
+        }
+
         if (config.activated === false) {
-            // still allow click events via endTouch
-            touchCount = event.touches.length;
+            startTouch(event);
             return;
         }
 
-        if (touchCount === 0) {
-            // delay interaction start to touchMove
-            startOnTouchMove = true;
+        if (event.touches.length === 1 && currentTouches === 0) {
+            considerInputStart(event);
             return;
         }
 
-        // change of touchcount (more than one)
-        changeTouchCount(event);
+        startTouch(event);
     }
 
-    /** called for new or changing touch events */
-    function changeTouchCount(event: TouchEvent): void {
-        const currentTouchCount = event.touches.length;
-        touchCount = currentTouchCount;
-        if (touchCount !== 0) {
-            onEnd(processor.currentPosition); // send end event if change of active interaction
-        }
-        processor.reset(event.touches);
-        onStart(processor.currentPosition)
-    }
-
-    /** called for each removed touch */
-    function removeTouchPoint(event): void {
-        if (touchCount === 0) {
-            return; // abort if inactive
-        }
-        event.stopPropagation(); // end event might be triggered twice (document listener)
-        if (event.touches.length !== 0) {
-            changeTouchCount(event);
-            return;
-        }
-        // stop and reset
-        startOnTouchMove = false;
-        touchCount = 0;
-        processor.stop();
-        onEnd(processor.currentPosition);
-    }
-
-    function moveTouch(event: TouchEvent): void {
-        if (config.activated === false || (touchCount === 0 && startOnTouchMove === false)) {
+    function touchmove(event) {
+        if (
+            config.activated === false ||
+            (currentTouches === 0 && considerStart === false)
+        ) {
             return;
         }
 
-        if (startOnTouchMove === true) {
-            startOnTouchMove = false;
-            changeTouchCount(event);
-            processor.start();
+        if (considerStart === true) {
+            startTouch(event);
         }
 
         event.preventDefault();
         event.stopPropagation();
-        processor.currentEvent = event;
+        Processor.currentEvent = event;
     }
 
     return config;
 }
+
+export default touch;

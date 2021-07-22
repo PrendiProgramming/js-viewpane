@@ -1,48 +1,59 @@
-import { vec3 as v, mat4 } from "gl-matrix";
-import Camera from "./Camera";
+"use strict";
 
+import vector from "../common/vector";
 
 /**
- * world representation - manages positioning and rotation for included objects.
+ * Physical viewpane representation - manages positioning.
+ *
+ * @param {HtmlElement} element - of the viewpane
  */
-export default class ViewpaneEntity {
-    element: HTMLElement;
-    style: CSSStyleDeclaration;
-    position: v;
-    rotation: v;
-    transform: string;
-
-    modelMatrix: mat4;
-    readonly modelViewMatrix: mat4;
-
-    constructor(element: HTMLElement) {
-        this.element = element;
-        this.style = element.style;
-        this.position = v.create();
-        this.rotation = v.create();
-        this.modelMatrix = mat4.create();
-        this.modelViewMatrix = mat4.create();
-    }
-
-    calculate(camera: Camera): void {
-        const { modelMatrix, modelViewMatrix } = this;
-
-        // mat4.translate(modelViewMatrix, modelMatrix, v.fromValues(camera.eye[0], camera.eye[1], 0));
-        mat4.multiply(modelViewMatrix, modelViewMatrix, camera.viewMatrix);
-
-        this.transform = `matrix3d(${modelViewMatrix.join(",")})`;
-    }
-
-    render(): void {
-        const { transform } = this;
-        // this.style.webkitTransform = transform;
-        // // @ts-ignore
-        // this.style.mozTransform = transform;
-        this.style.transform = transform;
-    }
-
-    dispose(): void {
-        this.transform = "";
-        this.render();
-    }
+function Viewpane(element) {
+    this.element = element;
+    this.style = element.style;
+    this.position = vector.create();
+    this.rotation = vector.create();
 }
+
+Viewpane.prototype.getPosition = function () {
+    return this.position;
+};
+
+Viewpane.prototype.setPosition = function (vector) {
+    return this.position.set(vector);
+};
+
+Viewpane.prototype.getRotation = function () {
+    return this.rotation;
+};
+
+Viewpane.prototype.setRotation = function (rotate) {
+    return this.rotation.set(rotate);
+};
+
+Viewpane.prototype.calculate = function (camera) {
+    this.transform =
+        this.position.toTranslate(camera) + " " + this.rotation.toRotate();
+};
+
+Viewpane.prototype.render = function render() {
+    var transform = this.transform;
+    this.style.webkitTransform = transform;
+    this.style.mozTransform = transform;
+    this.style.transform = transform;
+};
+
+Viewpane.prototype.dispose = function () {
+    this.transform = "";
+    this.render();
+};
+
+/**
+ * Move position relative to current position
+ *
+ * @param  {Vector} vector  - relative position
+ */
+Viewpane.prototype.add = function (vector) {
+    this.position.add(vector);
+};
+
+export default Viewpane;

@@ -3,21 +3,29 @@ const TerserPlugin = require("terser-webpack-plugin"); // eslint-disable-line
 const PRODUCTION = process.env.NODE_ENV === "production";
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
-
 const APP = {
     camera: {
         index: "./app/app-camera.ts",
-        html: "app/index.html"
+        html: "app/index.html",
+    },
+    previous: {
+        index: "./app/previous/previous.ts",
+        html: "app/previous/cities.html",
+    },
+    simple: {
+        index: "./app/index.ts",
+        html: "app/index.html",
     },
     matrix: {
         index: "./app/viewMatrix.ts",
-        html: "app/viewMatrix.html"
-    }
-}
+        html: "app/viewMatrix.html",
+    },
+};
 
 // const app = APP.matrix;
-const app = APP.camera;
-
+// const app = APP.previous;
+const app = APP.simple;
+// const app = APP.camera;
 
 const config = {
     entry: [app.index],
@@ -28,12 +36,12 @@ const config = {
     stats: { children: false },
     output: {
         path: path.resolve(__dirname, PRODUCTION ? "dist" : "dev"),
-        filename: 'app-camera.js'
+        filename: "app-camera.js",
     },
 
     resolve: {
         extensions: [".tsx", ".ts", ".js"],
-        alias: {}
+        alias: {},
     },
 
     module: {
@@ -46,10 +54,10 @@ const config = {
                         configFile: path.resolve(__dirname, "tsconfig.json"),
                         compilerOptions: {
                             sourceMap: !PRODUCTION,
-                            declaration: PRODUCTION
-                        }
-                    }
-                }
+                            declaration: PRODUCTION,
+                        },
+                    },
+                },
             },
             {
                 test: /\.jpe?g$|\.gif$|\.png$|\.woff\d?$|\.ttf$|\.eot|\.otf|\.wav$|\.mp3$/,
@@ -58,28 +66,25 @@ const config = {
                         loader: "url-loader",
                         options: {
                             limit: 1000,
-                            name: "[name].[ext]"
-                        }
-                    }
-                ]
-            }
-        ]
+                            name: "[name].[ext]",
+                        },
+                    },
+                ],
+            },
+        ],
     },
 
-    plugins: [
-        new HtmlWebpackPlugin({ template: app.html })
-    ],
+    plugins: [new HtmlWebpackPlugin({ template: app.html })],
 
     optimization: {
-        minimizer: [new TerserPlugin()]
+        minimizer: [new TerserPlugin()],
     },
 
     devServer: {
         port: 8080,
         disableHostCheck: true,
-        host: "0.0.0.0"
-    }
+        host: "0.0.0.0",
+    },
 };
-
 
 module.exports = config;

@@ -1,7 +1,7 @@
 {
-    "name": "js-viewpane",
-    "version": "0.2.0",
-    "description": "",
+    "name": "ts-viewpane",
+    "version": "0.3.0",
+    "description": "fork of js-viewpane with minor touch fixes and basic typescript support",
     "scripts": {
         "start": "webpack-dev-server --config webpack.app.config.js",
         "build": "NODE_ENV=production webpack",
@@ -12,6 +12,10 @@
     "types": "ts/lib/index.d.ts",
     "author": "Sascha Goldhofer <noreply@saschagoldhofer.de> (https://github.com/sagold/)",
     "license": "MIT",
+    "files": [
+        "dist",
+        "ts"
+    ],
     "devDependencies": {
         "@types/gl-matrix": "^2.4.5",
         "@types/mocha": "^7.0.2",

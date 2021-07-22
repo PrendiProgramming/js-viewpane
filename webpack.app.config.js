@@ -1,9 +1,19 @@
 const path = require("path"); // eslint-disable-line
 const TerserPlugin = require("terser-webpack-plugin"); // eslint-disable-line
 const PRODUCTION = process.env.NODE_ENV === "production";
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+
+const APP = {
+    simple: {
+        index: "./example/index.ts",
+        html: "example/index.html",
+    },
+};
+
+const app = APP.simple;
 
 const config = {
-    entry: ["./lib/index.ts"],
+    entry: [app.index],
     mode: PRODUCTION ? "production" : "development",
     context: __dirname,
     target: "web",
@@ -11,11 +21,7 @@ const config = {
     stats: { children: false },
     output: {
         path: path.resolve(__dirname, PRODUCTION ? "dist" : "dev"),
-        filename: "viewpane.js",
-        libraryTarget: "umd",
-        library: "viewpane",
-        umdNamedDefine: true,
-        globalObject: `(typeof self !== 'undefined' ? self : this)`,
+        filename: "app-camera.js",
     },
 
     resolve: {
@@ -38,11 +44,31 @@ const config = {
                     },
                 },
             },
+            {
+                test: /\.jpe?g$|\.gif$|\.png$|\.woff\d?$|\.ttf$|\.eot|\.otf|\.wav$|\.mp3$/,
+                use: [
+                    {
+                        loader: "url-loader",
+                        options: {
+                            limit: 1000,
+                            name: "[name].[ext]",
+                        },
+                    },
+                ],
+            },
         ],
     },
 
+    plugins: [new HtmlWebpackPlugin({ template: app.html })],
+
     optimization: {
         minimizer: [new TerserPlugin()],
+    },
+
+    devServer: {
+        port: 8080,
+        disableHostCheck: true,
+        host: "0.0.0.0",
     },
 };
 

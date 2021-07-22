@@ -8,7 +8,8 @@
         "test": "TS_NODE_PROJECT=./test/tsconfig.json mocha -r ts-node/register 'test/**/*.test.ts'",
         "test:watch": "watch 'yarn test'"
     },
-    "main": "lib/index.ts",
+    "main": "dist/viewpane.js",
+    "types": "ts/lib/index.d.ts",
     "author": "Sascha Goldhofer <noreply@saschagoldhofer.de> (https://github.com/sagold/)",
     "license": "MIT",
     "devDependencies": {

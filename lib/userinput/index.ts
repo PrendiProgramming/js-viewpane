@@ -32,8 +32,7 @@ function UserInput($element, eventListener) {
             this.elementBound,
             this.onStart,
             this.onScale,
-            this.onEnd,
-            this.onChange
+            this.onEnd
         )
     );
     this.controls.push(

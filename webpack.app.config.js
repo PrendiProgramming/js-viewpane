@@ -4,28 +4,13 @@ const PRODUCTION = process.env.NODE_ENV === "production";
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 const APP = {
-    camera: {
-        index: "./app/app-camera.ts",
-        html: "app/index.html",
-    },
-    previous: {
-        index: "./app/previous/previous.ts",
-        html: "app/previous/cities.html",
-    },
     simple: {
-        index: "./app/index.ts",
-        html: "app/index.html",
-    },
-    matrix: {
-        index: "./app/viewMatrix.ts",
-        html: "app/viewMatrix.html",
+        index: "./example/index.ts",
+        html: "example/index.html",
     },
 };
 
-// const app = APP.matrix;
-// const app = APP.previous;
 const app = APP.simple;
-// const app = APP.camera;
 
 const config = {
     entry: [app.index],

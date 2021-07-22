@@ -24,7 +24,7 @@ function getLengthOfLine(firstTouch, secondTouch) {
     return Math.sqrt(x * x + y * y);
 }
 
-function touch($element, boundingBox, onStart, onInput, onEnd, onChange) {
+function touch($element, boundingBox, onStart, onInput, onEnd) {
     var config = {
         activated: true,
         dispose: function () {
@@ -127,7 +127,6 @@ function touch($element, boundingBox, onStart, onInput, onEnd, onChange) {
     }
 
     function startTouch(event) {
-        var isActive = currentTouches !== 0;
         config.activated && event.preventDefault();
         considerStart = false;
         currentTouches = event.touches.length;
@@ -138,10 +137,6 @@ function touch($element, boundingBox, onStart, onInput, onEnd, onChange) {
             startSingleTouch(event.touches[0]);
         } else {
             startDoubleTouch(event.touches[0], event.touches[1]);
-            if (isActive) {
-                onChange(currentPosition);
-                return;
-            }
         }
 
         onStart(currentPosition);
@@ -156,19 +151,18 @@ function touch($element, boundingBox, onStart, onInput, onEnd, onChange) {
         // end event might be triggered twice (document)
         event.stopPropagation();
 
-        // if touch remains, change mode
-        if (event.touches.length === 1) {
-            // reset
-            startSingleTouch(event.touches[0]);
-            onChange(currentPosition);
-            return;
-        }
-
         // else end input action
         considerStart = false;
         currentTouches = 0;
         Processor.stop();
         onEnd(event);
+
+        // if touch remains, change mode
+        if (event.touches.length === 1 || event.touches.length === 2) {
+            requestAnimationFrame(() => {
+                startTouch(event);
+            });
+        }
     }
 
     var considerStart = false;
@@ -178,6 +172,11 @@ function touch($element, boundingBox, onStart, onInput, onEnd, onChange) {
 
     function touchstart(event) {
         if (event.touches.length > 2) {
+            return;
+        }
+
+        if (event.touches.length === 2 && currentTouches === 1) {
+            endTouch(event); // ends current touch and starts a new touch event to handle zoom
             return;
         }
 

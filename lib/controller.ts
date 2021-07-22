@@ -10,7 +10,6 @@ import withObservable from "./common/withObservable";
 Viewpane.EVENT_CLICK = "onClick";
 Viewpane.EVENT_UPDATE = "onUpdate";
 Viewpane.EVENT_RENDER = "onRender";
-Viewpane.EVENT_CHANGE = "onChange";
 Viewpane.EVENT_START = "onInputStart";
 Viewpane.EVENT_STOP = "onInputStop";
 Viewpane.EVENT_END = "onEnd";
@@ -129,15 +128,6 @@ function Viewpane(screenEl, viewpaneEl, options) {
 
             self.userInputStop(inputOrigin, vector.origin);
         },
-
-        onChange: function (position) {
-            inputOrigin.set(position);
-            inputOrigin.z = self.scene.camera.getPosition().z;
-            // the origin has changed thus reset the input delta to 0
-            currentPosition.set(inputOrigin);
-            previousPosition.set(inputOrigin);
-            self.userInputChange();
-        },
     });
 
     this.fit();
@@ -159,10 +149,6 @@ Viewpane.prototype.userInputStart = function () {
     this.speedSnap.stop();
     this.scene.activate();
     this.notify(Viewpane.EVENT_START);
-};
-
-Viewpane.prototype.userInputChange = function () {
-    this.notify(Viewpane.EVENT_CHANGE);
 };
 
 Viewpane.prototype.userInputStop = function (origin, speedVector) {
